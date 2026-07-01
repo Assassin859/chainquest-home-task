@@ -139,6 +139,8 @@ export function useQuestList() {
 /** Implement write helpers with useWriteContract + useWaitForTransactionReceipt. */
 export function useCreateQuest() {
   const { isConnected } = useAccount();
+  const publicClient = usePublicClient();
+  const { writeContractAsync, isPending } = useWriteContract();
 
   const createEthQuest = async (_input: {
     title: string;
@@ -148,38 +150,62 @@ export function useCreateQuest() {
     reviewPeriodHours: number;
   }) => {
     if (!isConnected) throw new Error("Connect MetaMask or another Web3 wallet first");
-    // TODO: useWriteContract → createQuest with value: parseEther(rewardEth), token: zeroAddress
-    throw new Error("TODO: implement useCreateQuest.createEthQuest");
+    if (!publicClient) throw new Error("Public client not available");
+
+    const hash = await writeContractAsync({
+      address: QUEST_ESCROW_ADDRESS,
+      abi: questEscrowAbi,
+      functionName: "createQuest",
+      args: [
+        _input.title,
+        _input.description,
+        parseEther(_input.rewardEth),
+        BigInt(Math.floor(_input.acceptDeadline.getTime() / 1000)),
+        BigInt(_input.reviewPeriodHours * 3600),
+        zeroAddress,
+      ],
+      value: parseEther(_input.rewardEth),
+    });
+
+    await publicClient.waitForTransactionReceipt({ hash });
   };
 
-  return { createEthQuest, isPending: false };
+  return { createEthQuest, isPending };
 }
 
 export function useQuestActions(questId: bigint) {
-  const accept = async () => {
-    // TODO: writeContract acceptQuest(questId)
-    throw new Error("TODO: implement accept");
-  };
-  const submit = async (_deliverableUri: string) => {
-    // TODO: writeContract submitWork(questId, deliverableUri)
-    throw new Error("TODO: implement submit");
-  };
-  const approve = async () => {
-    // TODO: writeContract approveAndPay(questId)
-    throw new Error("TODO: implement approve");
-  };
-  const claimTimeout = async () => {
-    // TODO: writeContract claimTimeoutPayout(questId)
-    throw new Error("TODO: implement claimTimeout");
-  };
-  const cancel = async () => {
-    // TODO: writeContract cancelQuest(questId)
-    throw new Error("TODO: implement cancel");
-  };
-  const refund = async () => {
-    // TODO: writeContract refundPoster(questId)
-    throw new Error("TODO: implement refund");
+  const publicClient = usePublicClient();
+  const { writeContractAsync, isPending } = useWriteContract();
+
+  const runTx = async (functionName: string, args: any[]) => {
+    if (!publicClient) throw new Error("Public client not available");
+    const hash = await writeContractAsync({
+      address: QUEST_ESCROW_ADDRESS,
+      abi: questEscrowAbi,
+      functionName,
+      args,
+    });
+    await publicClient.waitForTransactionReceipt({ hash });
   };
 
-  return { accept, submit, approve, claimTimeout, cancel, refund, isPending: false };
+  const accept = async () => {
+    await runTx("acceptQuest", [questId]);
+  };
+  const submit = async (deliverableUri: string) => {
+    await runTx("submitWork", [questId, deliverableUri]);
+  };
+  const approve = async () => {
+    await runTx("approveAndPay", [questId]);
+  };
+  const claimTimeout = async () => {
+    await runTx("claimTimeoutPayout", [questId]);
+  };
+  const cancel = async () => {
+    await runTx("cancelQuest", [questId]);
+  };
+  const refund = async () => {
+    await runTx("refundPoster", [questId]);
+  };
+
+  return { accept, submit, approve, claimTimeout, cancel, refund, isPending };
 }
