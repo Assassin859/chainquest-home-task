@@ -52,7 +52,7 @@ npm run test
 Please check the `assets/` directory for screenshots. 
 
 You can watch a full walkthrough video of the working flow here:
-*   [Watch Demo Video (Google Drive/Loom/YouTube Link)] (Insert your video upload link here)
+*   [Watch Demo Video (Loom)](https://www.loom.com/share/4acc0c5bdcf947989ddb561fdaa9d3e5)
 
 Screenshots show:
 1.  Wallet connected in header
