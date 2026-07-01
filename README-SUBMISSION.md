@@ -48,8 +48,13 @@ npm run test
 
 ---
 
-## Screenshots
-Please check the `assets/` directory for screenshots showing:
+## Screenshots & Demo Video
+Please check the `assets/` directory for screenshots. 
+
+You can watch a full walkthrough video of the working flow here:
+*   [Watch Demo Video (Google Drive/Loom/YouTube Link)] (Insert your video upload link here)
+
+Screenshots show:
 1.  Wallet connected in header
 2.  Quest creation flow on `/quests/create`
 3.  Active/accepted/submitted flow on `/quests/[id]`
